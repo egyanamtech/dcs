@@ -1,0 +1,6 @@
+build/
+dist/
+*.pyc
+dcscaffold.egg-info
+
+.vscode/settings.json
