@@ -109,11 +109,14 @@ class DCScaffold:
             print("cloning")
             res = subprocess.run(frontend_command, shell=True, capture_output=True)
             a = str(res.stderr)
-            error = a[:-3].endswith("not found in upstream origin")
-            if error:
-                print(
-                    f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
-                )
+            if res.returncode == 128:
+                error = a[:-3].endswith("not found in upstream origin")
+                if error:
+                    print(
+                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
+                    )
+                else:
+                    print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
         if backend_branch:
@@ -129,11 +132,14 @@ class DCScaffold:
             print("cloning")
             res = subprocess.run(backend_command, shell=True, capture_output=True)
             a = str(res.stderr)
-            error = a[:-3].endswith("not found in upstream origin")
-            if error:
-                print(
-                    f"ERROR: The Backend branch/tag '{B_BRANCH_DATA}' not avaialable to origin"
-                )
+            if res.returncode == 128:
+                error = a[:-3].endswith("not found in upstream origin")
+                if error:
+                    print(
+                        f"ERROR: The Backend branch/tag '{B_BRANCH_DATA}' not avaialable to origin."
+                    )
+                else:
+                    print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
