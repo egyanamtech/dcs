@@ -244,6 +244,24 @@ class DCScaffold:
         print("Restarting the services...")
         subprocess.run(f"{self.DOCKER_USER} docker-compose restart", shell=True)
 
+    def run_stop(self):
+        """stops the containers without down-ing them"""
+        print("Stopping the services...")
+        subprocess.run(f"{self.DOCKER_USER} docker-compose stop")
+
+    def run_start(self):
+        """starts the stopped the containers """
+        print("Stopping the services...")
+        subprocess.run(f"{self.DOCKER_USER} docker-compose start")
+
+    def run_restart_app(self, app):
+        """restarts the specified app/service container"""
+        basepath = os.path.basename(self.CWD)
+        print(f"Restarting the service: {app}")
+        subprocess.run(
+            f"{self.DOCKER_USER} docker restart {basepath}_{app}_1", shell=True
+        )
+
     def test_docker(self):
         result = subprocess.run(
             f"{self.DOCKER_USER} docker ps", capture_output=True, shell=True
