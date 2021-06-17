@@ -68,16 +68,78 @@ class DCScaffold:
 
     def remove_folders(self):
         """Remove the service folders if specified"""
+        print(sys.argv, "syss")
+        dir_list = []
+        if "-o" in sys.argv:
+            if "-f" in sys.argv:
+                print("removing f")
+                dir_list.append(self.FRONTEND_PATH)
+            elif "-F" in sys.argv:
+                print("removing F")
+                dir_list.append(self.FRONTEND_PATH)
+            elif "-b" in sys.argv:
+                print("removing b")
+                dir_list.append(self.BACKEND_PATH)
+            elif "-B" in sys.argv:
+                print("removing B")
+                dir_list.append(self.BACKEND_PATH)
+        else:
+            dir_list.append(self.FRONTEND_PATH)
+            dir_list.append(self.BACKEND_PATH)
+
         subprocess.run(f"{self.DOCKER_USER} docker-compose down", shell=True)
-        dir_list = [self.FRONTEND_PATH, self.BACKEND_PATH]
+        print(dir_list, "new dir list")
         for x in dir_list:
             try:
+                print(x, "dir list")
                 shutil.rmtree(x, onerror=self._remove_readonly)
             except FileNotFoundError:
                 print("No folder to delete.")
             except Exception as e:
                 print("Exception :", e)
                 print("You cannot proceed to run script")
+                sys.exit(-1)
+
+    def clone_frontend(self, F_BRANCH_DATA):
+        print('cloningggg frontendddd')
+        frontend_command = f"{self.CLONE} {F_BRANCH_DATA} {self.REPO_BASE}{self.FRONTEND_REPO} {self.FRONTEND_DIR}"
+        print(frontend_command, "frontend_command")
+        fr_isdir = os.path.isdir(self.FRONTEND_PATH)
+        if fr_isdir:
+            print("Repos already cloned")
+        else:
+            print("cloning")
+            res = subprocess.run(frontend_command, shell=True, capture_output=True)
+            a = str(res.stderr)
+            if res.returncode == 128:
+                error = a[:-3].endswith("not found in upstream origin")
+                if error:
+                    print(
+                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
+                    )
+                else:
+                    print("You may have slow internet or NO internet.\n", res.stderr)
+                sys.exit(-1)
+
+    def clone_backend(self, B_BRANCH_DATA):
+
+        backend_command = f"{self.CLONE} {B_BRANCH_DATA} {self.REPO_BASE}{self.BACKEND_REPO} {self.BACKEND_DIR}"
+        print(backend_command, "backend_command")
+        bk_isdir = os.path.isdir(self.BACKEND_PATH)
+        if bk_isdir:
+            print("Repos already cloned")
+        else:
+            print("cloning")
+            res = subprocess.run(backend_command, shell=True, capture_output=True)
+            a = str(res.stderr)
+            if res.returncode == 128:
+                error = a[:-3].endswith("not found in upstream origin")
+                if error:
+                    print(
+                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
+                    )
+                else:
+                    print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
     def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag):
@@ -96,51 +158,37 @@ class DCScaffold:
         subprocess.run("git config --global credential.helper store", shell=True)
         F_BRANCH_DATA = ""
         B_BRANCH_DATA = ""
+
         if frontend_branch:
             F_BRANCH_DATA = f"-b {frontend_branch}"
         elif frontend_tag:
             F_BRANCH_DATA = f"-b {frontend_tag}"
-        frontend_command = f"{self.CLONE} {F_BRANCH_DATA} {self.REPO_BASE}{self.FRONTEND_REPO} {self.FRONTEND_DIR}"
-        print(frontend_command)
-        fr_isdir = os.path.isdir(self.FRONTEND_PATH)
-        if fr_isdir:
-            print("Repos already cloned")
+        print(F_BRANCH_DATA, "new f branch")
+        if "-o" in sys.argv:
+            print(F_BRANCH_DATA, "in ffff")
+            if F_BRANCH_DATA != "":
+                print("o cloning")
+                self.clone_frontend(F_BRANCH_DATA)
         else:
-            print("cloning")
-            res = subprocess.run(frontend_command, shell=True, capture_output=True)
-            a = str(res.stderr)
-            if res.returncode == 128:
-                error = a[:-3].endswith("not found in upstream origin")
-                if error:
-                    print(
-                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
-                    )
-                else:
-                    print("You may have slow internet or NO internet.\n", res.stderr)
-                sys.exit(-1)
+            print("normal cloning")
+            self.clone_frontend(F_BRANCH_DATA)
 
         if backend_branch:
+            print("bb")
             B_BRANCH_DATA = f"-b {backend_branch}"
+
         elif backend_tag:
+            print("BB")
             B_BRANCH_DATA = f"-b {backend_tag}"
-        backend_command = f"{self.CLONE} {B_BRANCH_DATA} {self.REPO_BASE}{self.BACKEND_REPO} {self.BACKEND_DIR}"
-        print(backend_command)
-        bk_isdir = os.path.isdir(self.BACKEND_PATH)
-        if bk_isdir:
-            print("Repos already cloned")
+        if "-o" in sys.argv:
+            print(B_BRANCH_DATA, "in bbbb")
+            if B_BRANCH_DATA != "":
+                print("o cloning")
+                self.clone_backend(B_BRANCH_DATA)
         else:
-            print("cloning")
-            res = subprocess.run(backend_command, shell=True, capture_output=True)
-            a = str(res.stderr)
-            if res.returncode == 128:
-                error = a[:-3].endswith("not found in upstream origin")
-                if error:
-                    print(
-                        f"ERROR: The Backend branch/tag '{B_BRANCH_DATA}' not avaialable to origin."
-                    )
-                else:
-                    print("You may have slow internet or NO internet.\n", res.stderr)
-                sys.exit(-1)
+            print("normal cloning")
+            self.clone_backend(B_BRANCH_DATA)
+
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
     def docker_sql_commands(self, sql_file):
