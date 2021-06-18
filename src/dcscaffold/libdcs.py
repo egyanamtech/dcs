@@ -71,26 +71,20 @@ class DCScaffold:
         dir_list = []
         if only_tag:
             if frontend_branch:
-                print("removing f")
                 dir_list.append(self.FRONTEND_PATH)
             elif frontend_tag:
-                print("removing F")
                 dir_list.append(self.FRONTEND_PATH)
             elif backend_branch:
-                print("removing b")
                 dir_list.append(self.BACKEND_PATH)
             elif backend_tag:
-                print("removing B")
                 dir_list.append(self.BACKEND_PATH)
         else:
             dir_list.append(self.FRONTEND_PATH)
             dir_list.append(self.BACKEND_PATH)
 
         subprocess.run(f"{self.DOCKER_USER} docker-compose down", shell=True)
-        print(dir_list, "new dir list")
         for x in dir_list:
             try:
-                print(x, "dir list")
                 shutil.rmtree(x, onerror=self._remove_readonly)
             except FileNotFoundError:
                 print("No folder to delete.")
