@@ -66,21 +66,20 @@ class DCScaffold:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def remove_folders(self):
+    def remove_folders(self,only_tag,frontend_tag,frontend_branch,backend_branch,backend_tag):
         """Remove the service folders if specified"""
-        print(sys.argv, "syss")
         dir_list = []
-        if "-o" in sys.argv:
-            if "-f" in sys.argv:
+        if only_tag:
+            if frontend_branch:
                 print("removing f")
                 dir_list.append(self.FRONTEND_PATH)
-            elif "-F" in sys.argv:
+            elif frontend_tag:
                 print("removing F")
                 dir_list.append(self.FRONTEND_PATH)
-            elif "-b" in sys.argv:
+            elif backend_branch:
                 print("removing b")
                 dir_list.append(self.BACKEND_PATH)
-            elif "-B" in sys.argv:
+            elif backend_tag:
                 print("removing B")
                 dir_list.append(self.BACKEND_PATH)
         else:
