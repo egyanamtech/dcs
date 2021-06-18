@@ -66,7 +66,7 @@ class DCScaffold:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def remove_folders(self,only_tag,frontend_tag,frontend_branch,backend_branch,backend_tag):
+    def remove_folders(self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag):
         """Remove the service folders if specified"""
         dir_list = []
         if only_tag:
@@ -104,7 +104,7 @@ class DCScaffold:
         print(DIR[5:])
 
         print('cloning repo')
-        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
+        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {self.REPO_BASE} {REPO} {DIR}"
         print(clone_command, "command")
         fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
