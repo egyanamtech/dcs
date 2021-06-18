@@ -100,12 +100,8 @@ class DCScaffold:
                 sys.exit(-1)
 
     def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
-        print(BRANCH_DATA, REPO, DIR, PATH)
-        print(DIR[5:])
 
-        print('cloning repo')
         clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {self.REPO_BASE} {REPO} {DIR}"
-        print(clone_command, "command")
         fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
             print("Repos already cloned")
@@ -144,32 +140,23 @@ class DCScaffold:
             F_BRANCH_DATA = f"-b {frontend_branch}"
         elif frontend_tag:
             F_BRANCH_DATA = f"-b {frontend_tag}"
-        print(F_BRANCH_DATA, "new f branch")
         if only_tag:
-            print(F_BRANCH_DATA, "in ffff")
             if F_BRANCH_DATA != "":
-                print("o cloning")
                 self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         else:
-            print("normal cloning")
             self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         if backend_branch:
-            print("bb")
             B_BRANCH_DATA = f"-b {backend_branch}"
 
         elif backend_tag:
-            print("BB")
             B_BRANCH_DATA = f"-b {backend_tag}"
         if only_tag:
-            print(B_BRANCH_DATA, "in bbbb")
             if B_BRANCH_DATA != "":
-                print("o cloning")
                 self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
 
         else:
-            print("normal cloning")
             self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
 
         subprocess.run("git config --global --unset credential.helper", shell=True)
