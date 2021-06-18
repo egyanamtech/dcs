@@ -104,7 +104,7 @@ class DCScaffold:
         print(DIR[5:])
 
         print('cloning repo')
-        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {REPO} {DIR}"
+        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
         print(clone_command, "command")
         fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
