@@ -113,7 +113,7 @@ class DCScaffold:
                     print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
-    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag):
+    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag,remove):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -126,6 +126,18 @@ class DCScaffold:
         :param backend_tag: The tag to clone for the backend branch
         :type backend_tag: string
         """
+        if only_tag:
+            if not (frontend_branch or frontend_tag or backend_tag or backend_branch):
+                print("you must specify one, and only one of the following for using the --only flag:")
+                print("--frontend-branch")
+                print("--frontend-tag")
+                print("--backend-branch")
+                print("--backend-tag")
+                sys.exit(-1)
+
+        if remove:
+            self.remove_folders(only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag)
+            print("in remove")
         subprocess.run("git config --global credential.helper store", shell=True)
         F_BRANCH_DATA = ""
         B_BRANCH_DATA = ""
