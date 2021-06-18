@@ -95,7 +95,7 @@ class DCScaffold:
 
     def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
 
-        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {self.REPO_BASE} {REPO} {DIR}"
+        clone_command = f"{self.CLONE} --single-branch --depth=1 {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
         fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
             print("Repos already cloned")
