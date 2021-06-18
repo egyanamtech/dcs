@@ -102,6 +102,7 @@ class DCScaffold:
 
     def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
         print(BRANCH_DATA, REPO, DIR, PATH)
+        print(DIR[5:])
 
         print('cloning repo')
         clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {REPO} {DIR}"
@@ -117,7 +118,7 @@ class DCScaffold:
                 error = a[:-3].endswith("not found in upstream origin")
                 if error:
                     print(
-                        f"ERROR: The Frontend branch/tag '{BRANCH_DATA}' not avaialable to origin"
+                        f"ERROR: The {DIR[5:]} branch/tag '{BRANCH_DATA}' not avaialable to origin"
                     )
                 else:
                     print("You may have slow internet or NO internet.\n", res.stderr)
