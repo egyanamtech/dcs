@@ -100,49 +100,30 @@ class DCScaffold:
                 print("You cannot proceed to run script")
                 sys.exit(-1)
 
-    def clone_frontend(self, F_BRANCH_DATA):
-        print('cloningggg frontendddd')
-        frontend_command = f"{self.CLONE} {F_BRANCH_DATA} {self.REPO_BASE}{self.FRONTEND_REPO} {self.FRONTEND_DIR}"
-        print(frontend_command, "frontend_command")
-        fr_isdir = os.path.isdir(self.FRONTEND_PATH)
+    def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
+        print(BRANCH_DATA, REPO, DIR, PATH)
+
+        print('cloning repo')
+        clone_command = f"{self.CLONE} --single-branch {BRANCH_DATA} {REPO} {DIR}"
+        print(clone_command, "command")
+        fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
             print("Repos already cloned")
         else:
             print("cloning")
-            res = subprocess.run(frontend_command, shell=True, capture_output=True)
+            res = subprocess.run(clone_command, shell=True, capture_output=True)
             a = str(res.stderr)
             if res.returncode == 128:
                 error = a[:-3].endswith("not found in upstream origin")
                 if error:
                     print(
-                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
+                        f"ERROR: The Frontend branch/tag '{BRANCH_DATA}' not avaialable to origin"
                     )
                 else:
                     print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
-    def clone_backend(self, B_BRANCH_DATA):
-
-        backend_command = f"{self.CLONE} {B_BRANCH_DATA} {self.REPO_BASE}{self.BACKEND_REPO} {self.BACKEND_DIR}"
-        print(backend_command, "backend_command")
-        bk_isdir = os.path.isdir(self.BACKEND_PATH)
-        if bk_isdir:
-            print("Repos already cloned")
-        else:
-            print("cloning")
-            res = subprocess.run(backend_command, shell=True, capture_output=True)
-            a = str(res.stderr)
-            if res.returncode == 128:
-                error = a[:-3].endswith("not found in upstream origin")
-                if error:
-                    print(
-                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
-                    )
-                else:
-                    print("You may have slow internet or NO internet.\n", res.stderr)
-                sys.exit(-1)
-
-    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag):
+    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -164,14 +145,15 @@ class DCScaffold:
         elif frontend_tag:
             F_BRANCH_DATA = f"-b {frontend_tag}"
         print(F_BRANCH_DATA, "new f branch")
-        if "-o" in sys.argv:
+        if only_tag:
             print(F_BRANCH_DATA, "in ffff")
             if F_BRANCH_DATA != "":
                 print("o cloning")
-                self.clone_frontend(F_BRANCH_DATA)
+                self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+
         else:
             print("normal cloning")
-            self.clone_frontend(F_BRANCH_DATA)
+            self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         if backend_branch:
             print("bb")
@@ -180,14 +162,15 @@ class DCScaffold:
         elif backend_tag:
             print("BB")
             B_BRANCH_DATA = f"-b {backend_tag}"
-        if "-o" in sys.argv:
+        if only_tag:
             print(B_BRANCH_DATA, "in bbbb")
             if B_BRANCH_DATA != "":
                 print("o cloning")
-                self.clone_backend(B_BRANCH_DATA)
+                self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+
         else:
             print("normal cloning")
-            self.clone_backend(B_BRANCH_DATA)
+            self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
 
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
