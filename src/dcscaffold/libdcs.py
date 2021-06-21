@@ -113,7 +113,7 @@ class DCScaffold:
                     print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
-    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag,remove):
+    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag, remove):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -127,7 +127,11 @@ class DCScaffold:
         :type backend_tag: string
         """
         if only_tag:
-            if not (frontend_branch or frontend_tag or backend_tag or backend_branch):
+            branches_to_check = [frontend_branch, frontend_tag, backend_tag, backend_branch]
+            actual_sum = sum(map(bool, branches_to_check))
+
+            if actual_sum != 1:
+                # continue processing if sum == 1
                 print("you must specify one, and only one of the following for using the --only flag:")
                 print("--frontend-branch")
                 print("--frontend-tag")
