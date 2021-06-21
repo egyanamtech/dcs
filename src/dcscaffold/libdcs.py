@@ -66,10 +66,23 @@ class DCScaffold:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def remove_folders(self):
+    def remove_folders(self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag):
         """Remove the service folders if specified"""
+        dir_list = []
+        if only_tag:
+            if frontend_branch:
+                dir_list.append(self.FRONTEND_PATH)
+            elif frontend_tag:
+                dir_list.append(self.FRONTEND_PATH)
+            elif backend_branch:
+                dir_list.append(self.BACKEND_PATH)
+            elif backend_tag:
+                dir_list.append(self.BACKEND_PATH)
+        else:
+            dir_list.append(self.FRONTEND_PATH)
+            dir_list.append(self.BACKEND_PATH)
+
         subprocess.run(f"{self.DOCKER_USER} docker-compose down", shell=True)
-        dir_list = [self.FRONTEND_PATH, self.BACKEND_PATH]
         for x in dir_list:
             try:
                 shutil.rmtree(x, onerror=self._remove_readonly)
@@ -80,7 +93,27 @@ class DCScaffold:
                 print("You cannot proceed to run script")
                 sys.exit(-1)
 
-    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag):
+    def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
+
+        clone_command = f"{self.CLONE} --single-branch --depth=1 {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
+        fr_isdir = os.path.isdir(PATH)
+        if fr_isdir:
+            print("Repos already cloned")
+        else:
+            print("cloning")
+            res = subprocess.run(clone_command, shell=True, capture_output=True)
+            a = str(res.stderr)
+            if res.returncode == 128:
+                error = a[:-3].endswith("not found in upstream origin")
+                if error:
+                    print(
+                        f"ERROR: The {DIR[5:]} branch/tag '{BRANCH_DATA}' not avaialable to origin"
+                    )
+                else:
+                    print("You may have slow internet or NO internet.\n", res.stderr)
+                sys.exit(-1)
+
+    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag, remove):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -93,54 +126,49 @@ class DCScaffold:
         :param backend_tag: The tag to clone for the backend branch
         :type backend_tag: string
         """
+        if only_tag:
+            branches_to_check = [frontend_branch, frontend_tag, backend_tag, backend_branch]
+            actual_sum = sum(map(bool, branches_to_check))
+
+            if actual_sum != 1:
+                # continue processing if sum == 1
+                print("you must specify one, and only one of the following for using the --only flag:")
+                print("--frontend-branch")
+                print("--frontend-tag")
+                print("--backend-branch")
+                print("--backend-tag")
+                sys.exit(-1)
+
+        if remove:
+            self.remove_folders(only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag)
+            print("in remove")
         subprocess.run("git config --global credential.helper store", shell=True)
         F_BRANCH_DATA = ""
         B_BRANCH_DATA = ""
+
         if frontend_branch:
             F_BRANCH_DATA = f"-b {frontend_branch}"
         elif frontend_tag:
             F_BRANCH_DATA = f"-b {frontend_tag}"
-        frontend_command = f"{self.CLONE} {F_BRANCH_DATA} {self.REPO_BASE}{self.FRONTEND_REPO} {self.FRONTEND_DIR}"
-        print(frontend_command)
-        fr_isdir = os.path.isdir(self.FRONTEND_PATH)
-        if fr_isdir:
-            print("Repos already cloned")
+        if only_tag:
+            if F_BRANCH_DATA != "":
+                self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+
         else:
-            print("cloning")
-            res = subprocess.run(frontend_command, shell=True, capture_output=True)
-            a = str(res.stderr)
-            if res.returncode == 128:
-                error = a[:-3].endswith("not found in upstream origin")
-                if error:
-                    print(
-                        f"ERROR: The Frontend branch/tag '{F_BRANCH_DATA}' not avaialable to origin"
-                    )
-                else:
-                    print("You may have slow internet or NO internet.\n", res.stderr)
-                sys.exit(-1)
+            self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         if backend_branch:
             B_BRANCH_DATA = f"-b {backend_branch}"
+
         elif backend_tag:
             B_BRANCH_DATA = f"-b {backend_tag}"
-        backend_command = f"{self.CLONE} {B_BRANCH_DATA} {self.REPO_BASE}{self.BACKEND_REPO} {self.BACKEND_DIR}"
-        print(backend_command)
-        bk_isdir = os.path.isdir(self.BACKEND_PATH)
-        if bk_isdir:
-            print("Repos already cloned")
+        if only_tag:
+            if B_BRANCH_DATA != "":
+                self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+
         else:
-            print("cloning")
-            res = subprocess.run(backend_command, shell=True, capture_output=True)
-            a = str(res.stderr)
-            if res.returncode == 128:
-                error = a[:-3].endswith("not found in upstream origin")
-                if error:
-                    print(
-                        f"ERROR: The Backend branch/tag '{B_BRANCH_DATA}' not avaialable to origin."
-                    )
-                else:
-                    print("You may have slow internet or NO internet.\n", res.stderr)
-                sys.exit(-1)
+            self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
     def docker_sql_commands(self, sql_file):
