@@ -42,7 +42,7 @@ class DCScaffold:
         :param repo_base: The base of the repos
         :type repo_base: string
         """
-        self.DOCKER_USER = d_user
+        self.DOCKER_USER = d_user if os.name != "nt" else ""
         self.FRONTEND_DIR = f_dir
         self.BACKEND_DIR = b_dir
         self.FRONTEND_REPO = f_repo
