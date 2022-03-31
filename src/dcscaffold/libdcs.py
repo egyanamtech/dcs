@@ -25,7 +25,7 @@ class DCScaffold:
     CWD = None
     DIRNAME = None
 
-    def __init__(self, d_user, f_dir, b_dir, l_dir=None, f_repo, b_repo, l_repo=None ,cwd, clone, repo_base):
+    def __init__(self, d_user, f_dir, b_dir, l_dir, f_repo, b_repo, l_repo ,cwd, clone, repo_base):
         """The class constructor for the DCScaffold Class
 
         :param d_user: The docker User, in case you specify the user in docker-compose.yml
