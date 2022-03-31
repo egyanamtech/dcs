@@ -190,8 +190,8 @@ class DCScaffold:
         if only_tag:
             if L_BRANCH_DATA != "":
                 self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
-            else:
-                self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
+        else:
+            self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
     def docker_sql_commands(self, sql_file):
