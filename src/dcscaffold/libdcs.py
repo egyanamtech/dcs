@@ -13,16 +13,19 @@ class DCScaffold:
     DOCKER_USER = None
     FRONTEND_DIR = None
     BACKEND_DIR = None
+    LICENSE_DIR = None
     CLONE = None
     REPO_BASE = None
     FRONTEND_REPO = None
     BACKEND_REPO = None
+    LICENSE_REPO = None
     BACKEND_PATH = None
     FRONTEND_PATH = None
+    LICENSE_PATH = None
     CWD = None
     DIRNAME = None
 
-    def __init__(self, d_user, f_dir, b_dir, f_repo, b_repo, cwd, clone, repo_base):
+    def __init__(self, d_user, f_dir, b_dir, l_dir=None, f_repo, b_repo, l_repo=None ,cwd, clone, repo_base):
         """The class constructor for the DCScaffold Class
 
         :param d_user: The docker User, in case you specify the user in docker-compose.yml
@@ -45,13 +48,16 @@ class DCScaffold:
         self.DOCKER_USER = d_user if os.name != "nt" else ""
         self.FRONTEND_DIR = f_dir
         self.BACKEND_DIR = b_dir
+        self.LICENSE_DIR = l_dir
         self.FRONTEND_REPO = f_repo
         self.BACKEND_REPO = b_repo
+        self.LICENSE_REPO = l_repo
         self.CWD = cwd
         self.CLONE = clone
         self.REPO_BASE = repo_base
         self.BACKEND_PATH = os.path.join(self.CWD, self.BACKEND_DIR)
         self.FRONTEND_PATH = os.path.join(self.CWD, self.FRONTEND_DIR)
+        self.LICENSE_PATH = os.path.join(self.CWD, self.LICENSE_DIR)
         self.DIRNAME = os.path.basename(self.CWD)
 
     def _remove_readonly(self, func, path, _):
@@ -66,7 +72,7 @@ class DCScaffold:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def remove_folders(self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag):
+    def remove_folders(self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag,license_tag,license_branch):
         """Remove the service folders if specified"""
         dir_list = []
         if only_tag:
@@ -78,9 +84,14 @@ class DCScaffold:
                 dir_list.append(self.BACKEND_PATH)
             elif backend_tag:
                 dir_list.append(self.BACKEND_PATH)
+            elif license_branch:
+                dir_list.append(self.LICENSE_PATH)
+            elif license_tag:
+                dir_list.append(self.LICENSE_PATH)
         else:
             dir_list.append(self.FRONTEND_PATH)
             dir_list.append(self.BACKEND_PATH)
+            dir_list.append(self.LICENSE_PATH)
 
         subprocess.run(f"{self.DOCKER_USER} docker-compose down", shell=True)
         for x in dir_list:
@@ -93,7 +104,7 @@ class DCScaffold:
                 print("You cannot proceed to run script")
                 sys.exit(-1)
 
-    def clone_backend_frontend(self, BRANCH_DATA, REPO, DIR, PATH):
+    def clone_backend_frontend_license(self, BRANCH_DATA, REPO, DIR, PATH):
 
         clone_command = f"{self.CLONE} --single-branch --depth=1 {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
         fr_isdir = os.path.isdir(PATH)
@@ -113,7 +124,7 @@ class DCScaffold:
                     print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
-    def clone_repos(self, frontend_branch, backend_branch, frontend_tag, backend_tag, only_tag, remove):
+    def clone_repos(self, frontend_branch, backend_branch, license_branch, frontend_tag, backend_tag, license_tag,only_tag, remove):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -127,7 +138,7 @@ class DCScaffold:
         :type backend_tag: string
         """
         if only_tag:
-            branches_to_check = [frontend_branch, frontend_tag, backend_tag, backend_branch]
+            branches_to_check = [frontend_branch, frontend_tag, backend_tag, backend_branch, license_branch, license_tag]
             actual_sum = sum(map(bool, branches_to_check))
 
             if actual_sum != 1:
@@ -137,14 +148,17 @@ class DCScaffold:
                 print("--frontend-tag")
                 print("--backend-branch")
                 print("--backend-tag")
+                print("--license-branch")
+                print("--license-tag")
                 sys.exit(-1)
 
         if remove:
-            self.remove_folders(only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag)
+            self.remove_folders(only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag, license_branch, license_tag)
             print("in remove")
         subprocess.run("git config --global credential.helper store", shell=True)
         F_BRANCH_DATA = ""
         B_BRANCH_DATA = ""
+        L_BRANCH_DATA = ""
 
         if frontend_branch:
             F_BRANCH_DATA = f"-b {frontend_branch}"
@@ -152,10 +166,10 @@ class DCScaffold:
             F_BRANCH_DATA = f"-b {frontend_tag}"
         if only_tag:
             if F_BRANCH_DATA != "":
-                self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+                self.clone_backend_frontend_license(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         else:
-            self.clone_backend_frontend(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+            self.clone_backend_frontend_license(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
 
         if backend_branch:
             B_BRANCH_DATA = f"-b {backend_branch}"
@@ -164,11 +178,20 @@ class DCScaffold:
             B_BRANCH_DATA = f"-b {backend_tag}"
         if only_tag:
             if B_BRANCH_DATA != "":
-                self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+                self.clone_backend_frontend_license(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
 
         else:
-            self.clone_backend_frontend(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+            self.clone_backend_frontend_license(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
 
+        if license_branch:
+            L_BRANCH_DATA = f"-b {license_branch}"
+        elif license_tag:
+            L_BRANCH_DATA = f"-b {license_tag}"
+        if only_tag:
+            if L_BRANCH_DATA != "":
+                self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
+            else:
+                self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
         subprocess.run("git config --global --unset credential.helper", shell=True)
 
     def docker_sql_commands(self, sql_file):
