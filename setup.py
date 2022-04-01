@@ -1,6 +1,7 @@
-import sys
 import os
 import shutil
+import sys
+
 import setuptools
 
 if sys.argv[-1] == "publish":
