@@ -271,6 +271,9 @@ class DCScaffold:
         if section[0] == "backend":
             command = f"docker-compose exec backend pytest {' '.join(res)}"
 
+        if section[0] == "license":
+            command = f"docker-compose exec license pytest {' '.join(res)}"
+
         print(command)
         subprocess.run(command, shell=True)
 
