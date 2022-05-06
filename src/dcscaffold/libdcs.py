@@ -269,7 +269,7 @@ class DCScaffold:
             command = f"docker-compose exec frontend npm run test {' '.join(res)}"
 
         if section[0] == "backend":
-            command = f"docker-compose exec backend pytest {' '.join(res)}"
+            command = f"docker-compose exec --env TEST=1 backend pytest {' '.join(res)}"
 
         if section[0] == "license":
             command = f"docker-compose exec license pytest {' '.join(res)}"
