@@ -25,7 +25,7 @@ class DCScaffold:
     CWD = None
     DIRNAME = None
 
-    def __init__(self, d_user, f_dir, b_dir, l_dir, f_repo, b_repo, l_repo ,cwd, clone, repo_base):
+    def __init__(self, d_user, f_dir, b_dir, l_dir, f_repo, b_repo, l_repo, cwd, clone, repo_base):
         """The class constructor for the DCScaffold Class
 
         :param d_user: The docker User, in case you specify the user in docker-compose.yml
@@ -72,7 +72,9 @@ class DCScaffold:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def remove_folders(self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag,license_tag,license_branch):
+    def remove_folders(
+        self, only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag, license_tag, license_branch
+    ):
         """Remove the service folders if specified"""
         dir_list = []
         if only_tag:
@@ -106,7 +108,7 @@ class DCScaffold:
 
     def clone_backend_frontend_license(self, BRANCH_DATA, REPO, DIR, PATH):
 
-        clone_command = f"{self.CLONE} --single-branch --depth=1 {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
+        clone_command = f"{self.CLONE}  --depth=1 {BRANCH_DATA} {self.REPO_BASE}{REPO} {DIR}"
         fr_isdir = os.path.isdir(PATH)
         if fr_isdir:
             print("Repos already cloned")
@@ -117,14 +119,14 @@ class DCScaffold:
             if res.returncode == 128:
                 error = a[:-3].endswith("not found in upstream origin")
                 if error:
-                    print(
-                        f"ERROR: The {DIR[5:]} branch/tag '{BRANCH_DATA}' not avaialable to origin"
-                    )
+                    print(f"ERROR: The {DIR[5:]} branch/tag '{BRANCH_DATA}' not avaialable to origin")
                 else:
                     print("You may have slow internet or NO internet.\n", res.stderr)
                 sys.exit(-1)
 
-    def clone_repos(self, frontend_branch, backend_branch, license_branch, frontend_tag, backend_tag, license_tag,only_tag, remove):
+    def clone_repos(
+        self, frontend_branch, backend_branch, license_branch, frontend_tag, backend_tag, license_tag, only_tag, remove
+    ):
         """Clones the repos specified, with the specified branch or tag.
         Only one of tag or branch is allowed for each service
 
@@ -138,7 +140,14 @@ class DCScaffold:
         :type backend_tag: string
         """
         if only_tag:
-            branches_to_check = [frontend_branch, frontend_tag, backend_tag, backend_branch, license_branch, license_tag]
+            branches_to_check = [
+                frontend_branch,
+                frontend_tag,
+                backend_tag,
+                backend_branch,
+                license_branch,
+                license_tag,
+            ]
             actual_sum = sum(map(bool, branches_to_check))
 
             if actual_sum != 1:
@@ -153,7 +162,9 @@ class DCScaffold:
                 sys.exit(-1)
 
         if remove:
-            self.remove_folders(only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag, license_branch, license_tag)
+            self.remove_folders(
+                only_tag, frontend_tag, frontend_branch, backend_branch, backend_tag, license_branch, license_tag
+            )
             print("in remove")
         subprocess.run("git config --global credential.helper store", shell=True)
         F_BRANCH_DATA = ""
@@ -166,10 +177,14 @@ class DCScaffold:
             F_BRANCH_DATA = f"-b {frontend_tag}"
         if only_tag:
             if F_BRANCH_DATA != "":
-                self.clone_backend_frontend_license(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+                self.clone_backend_frontend_license(
+                    F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH
+                )
 
         else:
-            self.clone_backend_frontend_license(F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH)
+            self.clone_backend_frontend_license(
+                F_BRANCH_DATA, self.FRONTEND_REPO, self.FRONTEND_DIR, self.FRONTEND_PATH
+            )
 
         if backend_branch:
             B_BRANCH_DATA = f"-b {backend_branch}"
@@ -178,7 +193,9 @@ class DCScaffold:
             B_BRANCH_DATA = f"-b {backend_tag}"
         if only_tag:
             if B_BRANCH_DATA != "":
-                self.clone_backend_frontend_license(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
+                self.clone_backend_frontend_license(
+                    B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH
+                )
 
         else:
             self.clone_backend_frontend_license(B_BRANCH_DATA, self.BACKEND_REPO, self.BACKEND_DIR, self.BACKEND_PATH)
@@ -189,7 +206,9 @@ class DCScaffold:
             L_BRANCH_DATA = f"-b {license_tag}"
         if only_tag:
             if L_BRANCH_DATA != "":
-                self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
+                self.clone_backend_frontend_license(
+                    L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH
+                )
         else:
             self.clone_backend_frontend_license(L_BRANCH_DATA, self.LICENSE_REPO, self.LICENSE_DIR, self.LICENSE_PATH)
         subprocess.run("git config --global --unset credential.helper", shell=True)
@@ -252,9 +271,7 @@ class DCScaffold:
     def run_dumpdb(self, sql_file):
         """creates backup of current DB and dumps new DB file in docker"""
         print("Dumping db into docker")
-        shutil.copyfile(
-            os.path.join(self.CWD, sql_file), os.path.join(self.CWD, f"{sql_file}.bak")
-        )
+        shutil.copyfile(os.path.join(self.CWD, sql_file), os.path.join(self.CWD, f"{sql_file}.bak"))
         subprocess.run(
             f"{self.DOCKER_USER} docker exec -t {self.DIRNAME}_db_1 pg_dump -U postgres -O -x postgres > {sql_file}",
             shell=True,
@@ -284,12 +301,12 @@ class DCScaffold:
         subprocess.run(f"{self.DOCKER_USER} docker-compose up  -d ", shell=True)
 
     def run_down(self):
-        """stops containers and removes containers created by up """
+        """stops containers and removes containers created by up"""
         print("Stopping the services...")
         subprocess.run(f"{self.DOCKER_USER} docker-compose down", shell=True)
 
     def run_ps(self):
-        """shows all running containers by default """
+        """shows all running containers by default"""
         print("Checking the services...")
         subprocess.run(f"{self.DOCKER_USER} docker-compose ps -a", shell=True)
 
@@ -304,7 +321,7 @@ class DCScaffold:
         subprocess.run(f"{self.DOCKER_USER} docker-compose stop", shell=True)
 
     def run_start(self):
-        """starts the stopped the containers """
+        """starts the stopped the containers"""
         print("Stopping the services...")
         subprocess.run(f"{self.DOCKER_USER} docker-compose start", shell=True)
 
@@ -312,14 +329,10 @@ class DCScaffold:
         """restarts the specified app/service container"""
         basepath = os.path.basename(self.CWD)
         print(f"Restarting the service: {app}")
-        subprocess.run(
-            f"{self.DOCKER_USER} docker restart {basepath}_{app}_1", shell=True
-        )
+        subprocess.run(f"{self.DOCKER_USER} docker restart {basepath}_{app}_1", shell=True)
 
     def test_docker(self):
-        result = subprocess.run(
-            f"{self.DOCKER_USER} docker ps", capture_output=True, shell=True
-        )
+        result = subprocess.run(f"{self.DOCKER_USER} docker ps", capture_output=True, shell=True)
         if result.stdout:
             print("Docker is running.")
         if result.stderr:

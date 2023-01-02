@@ -4,3 +4,4 @@ dist/
 dcscaffold.egg-info
 
 .vscode/settings.json
+dc_env/
